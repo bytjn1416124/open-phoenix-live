@@ -1,69 +1,111 @@
 # OpenPhoenix-Live: Real-Time Interactive Video Chat with AI
 
-[Previous sections remain the same...]
+[Earlier sections remain the same...]
 
-## Project Structure
+## System Dependencies and Error Handling
 
-```plaintext
-OpenPhoenix-Live/
-├── README.md
-├── docker/                  # Docker configuration
-│   ├── Dockerfile.stt      # Speech-to-Text service
-│   ├── Dockerfile.llm      # Language Model service
-│   ├── Dockerfile.tts      # Text-to-Speech service
-│   ├── Dockerfile.render   # 3D Rendering service
-│   └── docker-compose.yml  # Service orchestration
-├── server/                 # Backend services
-│   ├── main_server.py      # Main orchestration
-│   ├── stt_service.py      # Speech recognition
-│   ├── llm_service.py      # Language model
-│   ├── tts_service.py      # Speech synthesis
-│   ├── rendering_service.py # 3D rendering
-│   ├── animation/          # Animation code
-│   │   └── real_time_drivers.py  # Real-time animation
-│   └── utils/              # Utility functions
-├── client/                 # Frontend
-│   ├── public/             # Static assets
-│   │   └── index.html      # Main HTML file
-│   ├── cvi_app.js          # Main JS for WebRTC, video display
-│   └── src/                # React source code
-└── models/                 # Pre-trained models
-    ├── 3d_gs/              # Pretrained Gaussians
-    │   ├── pretrained_model.pth  # Main model weights
-    │   └── config.yaml     # Model configuration
-    ├── stt/                # Speech-to-Text models
-    │   ├── vosk-model-small-en-us/  # Vosk model
-    │   └── config.json     # Model configuration
-    └── tts/                # TTS checkpoints
-        ├── coqui_model.pth # TTS model weights
-        └── config.json     # Model configuration
+### Required Software
+```bash
+# Ubuntu/Debian
+sudo apt-get update && sudo apt-get install -y \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    libsndfile1 \
+    ffmpeg \
+    nvidia-cuda-toolkit
 ```
 
-## Models
+### Service Dependencies
+- STT Service → Vosk model
+- TTS Service → Coqui model
+- Rendering Service → 3D Gaussian model
+- All services → Redis cache
+- Frontend → WebRTC/WebSocket
 
-### Speech-to-Text Models
+## Error Handling
 
-#### Configuration (config.json)
-```json
-{
-  "model": {
-    "name": "vosk",
-    "version": "0.3.32",
-    "type": "small",
-    "language": "en-US",
-    "architecture": {
-      "type": "deepspeech",
-      "sample_rate": 16000,
-      "frame_size": 512,
-      "hop_length": 160
-    }
-  },
-  "features": {
-    "noise_reduction": true,
-    "vad": true,
-    "streaming": true
-  }
-}
+### 1. Model Loading
+```python
+try:
+    stt_service = STTService()
+    tts_service = TTSService()
+    render_service = RenderingService()
+except ModelNotFoundError:
+    logger.error("Required models not found")
+except GPUNotFoundError:
+    logger.error("CUDA GPU not available")
 ```
 
-[Rest of the README remains the same...]
+### 2. Service Connections
+```python
+try:
+    await service.connect()
+except ConnectionError:
+    await service.reconnect_with_backoff()
+```
+
+### 3. Real-time Processing
+```python
+try:
+    result = await process_frame(data)
+except TimeoutError:
+    result = await fallback_process(data)
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Model Loading Fails**
+   - Check model files exist
+   - Verify CUDA installation
+   - Check GPU memory
+
+2. **Service Connection Issues**
+   - Check network connectivity
+   - Verify service ports
+   - Check Docker containers
+
+3. **Performance Issues**
+   - Monitor GPU memory
+   - Check CPU usage
+   - Verify network bandwidth
+
+### Quick Fixes
+
+```bash
+# Verify model files
+make verify-models
+
+# Restart services
+docker-compose restart
+
+# Check logs
+docker-compose logs -f
+```
+
+### System Recovery
+
+```bash
+# Full system restart
+make clean
+make setup
+make dev
+
+# Individual service restart
+docker-compose restart [service_name]
+```
+
+## Component Relationships
+
+### Service Flow
+```
+User Browser → WebRTC → cvi_app.js → WebSocket → main_server.py
+   ↓                                                    ↓
+Video/Audio → STT Service → LLM Service → TTS Service → Render Service
+   ↓            ↓             ↓            ↓              ↓
+   Models →   STT Model      LLM         TTS Model    3D Model
+```
+
+[Rest of README remains the same...]
