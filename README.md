@@ -41,6 +41,7 @@ OpenPhoenix-Live/
 ├── client/                 # Frontend
 │   ├── public/             # Static assets
 │   │   └── index.html      # Main HTML file
+│   ├── cvi_app.js          # Main JS for WebRTC, displays user + agent video
 │   ├── src/                # React source code
 │   └── components/         # React components
 ├── models/                 # Pre-trained models
