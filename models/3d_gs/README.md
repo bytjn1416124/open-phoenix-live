@@ -1,65 +1,96 @@
 # 3D Gaussian Splatting Models
 
 ## Overview
-These models handle real-time 3D face representation and rendering using Gaussian Splatting techniques.
+This directory contains models for real-time 3D face rendering using Gaussian Splatting.
 
-## Files
+## Model Files
 
 ### pretrained_model.pth
-- Size: ~5GB
-- Format: PyTorch model checkpoint
-- Purpose: Contains learned Gaussian parameters
-
-Key components:
-```python
-model_structure = {
-    'gaussians': {
-        'means': [N, 3],       # 3D positions
-        'scales': [N, 3],       # Scale parameters
-        'rotations': [N, 4],    # Quaternion rotations
-        'opacities': [N, 1],    # Opacity values
-        'features': [N, D]      # Feature vectors
-    },
-    'deformation_net': {
-        'weights': {...},       # Network parameters
-        'config': {...}         # Architecture settings
-    }
-}
-```
+- **Purpose**: Main model weights for 3D Gaussian Splatting
+- **Size**: ~500MB
+- **Format**: PyTorch model file
+- **Architecture**: Custom Gaussian Splatting network
 
 ### config.yaml
 ```yaml
 model:
   type: gaussian_splatting
-  num_gaussians: 100000
-  feature_dim: 32
-  rendering:
-    resolution: [640, 480]
-    fps: 30
-    max_depth: 1000.0
-    min_depth: 0.1
-    point_size: 1.5
+  version: "1.0"
+  features:
+    gaussian_count: 100000
+    feature_dim: 256
+    position_dim: 3
+    scale_dim: 3
+    rotation_dim: 4
+
+rendering:
+  resolution:
+    width: 640
+    height: 480
+  fps: 30
+  quality: high
+  cuda:
+    required: true
+    min_memory: "6GB"
+
+animation:
   deformation:
     enabled: true
-    hidden_dim: 256
-    num_layers: 4
-    activation: relu
-  optimization:
-    learning_rate: 0.001
-    batch_size: 4096
-    num_iterations: 10000
+    blendshapes: 52
+    smoothing: true
+  expressions:
+    enabled: true
+    types:
+      - neutral
+      - smile
+      - talk
+      - surprise
+
+optimization:
+  batch_size: 4096
+  parallel_points: 65536
+  culling:
+    enabled: true
+    distance: 0.01
 ```
 
 ## Usage
+
+### Loading the Model
 ```python
-from rendering_service import GaussianRenderer
+from server.rendering_service import GaussianSplattingRenderer
 
-# Load model
-renderer = GaussianRenderer('models/3d_gs/pretrained_model.pth')
-
-# Render frame
-frame = renderer.render_frame(
-    camera_pose=camera_pose,
-    expressions=expressions
+renderer = GaussianSplattingRenderer(
+    model_path="models/3d_gs/pretrained_model.pth",
+    config_path="models/3d_gs/config.yaml"
 )
 ```
+
+### Performance Requirements
+- CUDA-capable GPU (6GB+ VRAM)
+- CUDA Toolkit 11.8+
+- 16GB+ System RAM
+
+## Model Details
+
+### Gaussian Parameters
+- Number of Gaussians: 100,000
+- Feature Dimension: 256
+- Position/Scale/Rotation encoding
+
+### Rendering Capabilities
+- Real-time view synthesis
+- Expression deformation
+- Dynamic lighting
+- Occlusion handling
+
+### Expression Control
+- 52 blendshape parameters
+- Smooth interpolation
+- Real-time updates
+
+## Training Data
+The model was trained on:
+- High-quality face scans
+- Multi-view video sequences
+- Expression datasets

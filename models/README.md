@@ -1,33 +1,43 @@
-# Pre-trained Models for OpenPhoenix-Live
+# OpenPhoenix-Live Models
 
-## Overview
-This directory contains all pre-trained models used in the OpenPhoenix-Live system.
+This directory contains all pre-trained models used by the OpenPhoenix-Live system.
 
 ## Directory Structure
-```plaintext
+```
 models/
-├── 3d_gs/              # Pretrained Gaussians
+├── 3d_gs/              # 3D Gaussian Splatting models
 │   ├── pretrained_model.pth  # Main model weights
 │   └── config.yaml     # Model configuration
-└── tts/                # TTS checkpoints
+└── tts/                # Text-to-Speech models
     ├── coqui_model.pth # TTS model weights
     └── config.json     # Model configuration
 ```
 
-## Model Requirements
-- Disk Space: ~10GB total
-- GPU Memory: 6GB minimum
-- CUDA Support: Required
+## Model Management
 
-## Installation
+### Download Models
 ```bash
 # Download all models
 make download-models
 
-# Verify model integrity
-make verify-models
+# Download specific models
+make download-gaussian-models  # 3D Gaussian models only
+make download-tts-models      # TTS models only
 ```
 
-## Model Versions
-- 3D Gaussian Splatting: v1.0.0
-- TTS Models: Coqui v1.2.0
+### Verify Models
+```bash
+make verify-models  # Check model integrity
+```
+
+### Model Updates
+```bash
+make update-models  # Update to latest versions
+make backup-models  # Backup current models
+```
+
+## Model Details
+
+For specific model information, see:
+- [3D Gaussian Splatting Models](3d_gs/README.md)
+- [Text-to-Speech Models](tts/README.md)
