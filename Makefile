@@ -1,9 +1,6 @@
-################################################################################
-#                         OpenPhoenix Live Makefile                           #
-################################################################################
-
-# This Makefile provides commands for managing the OpenPhoenix Live project.
-# It includes targets for setup, development, testing, deployment, and maintenance.
+#################################################################################
+#                      OpenPhoenix Live Makefile                               #
+#################################################################################
 
 # Ensure all commands in a target run in the same shell
 .ONESHELL:
@@ -13,7 +10,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
 # Mark targets that don't create files
-.PHONY: all setup dev test lint clean deploy help download-models check-env
+.PHONY: all setup dev test lint clean deploy help download-models check-env client server docker
 
 # Environment variables
 PYTHON := python3
@@ -25,85 +22,109 @@ COLOR_RESET := \033[0m
 COLOR_BLUE := \033[34m
 COLOR_GREEN := \033[32m
 COLOR_YELLOW := \033[33m
+COLOR_RED := \033[31m
 
 # Default target when running just 'make'
 all: help
 
-################################################################################
-#                              Setup Commands                                   #
-################################################################################
+#################################################################################
+#                              Setup Commands                                    #
+#################################################################################
 
-# Complete setup of the development environment
 setup: check-env
-	@echo "${COLOR_BLUE}Setting up OpenPhoenix Live development environment...${COLOR_RESET}"
+	@echo "${COLOR_BLUE}Setting up OpenPhoenix Live...${COLOR_RESET}"
 	@chmod +x scripts/*.sh
 	@./scripts/setup.sh
-	@echo "${COLOR_GREEN}Setup complete! Run 'make download-models' to download required models.${COLOR_RESET}"
+	@echo "${COLOR_GREEN}Setup complete!${COLOR_RESET}"
 
 # Download pre-trained models
 download-models: check-env
 	@echo "${COLOR_BLUE}Downloading pre-trained models...${COLOR_RESET}"
 	@./scripts/download_models.sh
 
-################################################################################
-#                           Development Commands                                #
-################################################################################
+#################################################################################
+#                           Development Commands                                 #
+#################################################################################
 
-# Start development servers
+# Start development environment
 dev: check-env
-	@echo "${COLOR_BLUE}Starting development servers...${COLOR_RESET}"
+	@echo "${COLOR_BLUE}Starting development environment...${COLOR_RESET}"
 	@./scripts/dev.sh
 
-# Run all tests
-test: test-unit test-integration
+# Start frontend development
+client: check-env
+	@echo "${COLOR_BLUE}Starting frontend development...${COLOR_RESET}"
+	cd client && $(NPM) start
 
-# Run unit tests only
+# Start backend development
+server: check-env
+	@echo "${COLOR_BLUE}Starting backend services...${COLOR_RESET}"
+	$(PYTHON) -m server.main_server
+
+#################################################################################
+#                              Docker Commands                                   #
+#################################################################################
+
+# Build Docker images
+docker-build:
+	@echo "${COLOR_BLUE}Building Docker images...${COLOR_RESET}"
+	docker-compose build
+
+# Start Docker services
+docker-up:
+	@echo "${COLOR_BLUE}Starting Docker services...${COLOR_RESET}"
+	docker-compose up -d
+
+# Stop Docker services
+docker-down:
+	@echo "${COLOR_BLUE}Stopping Docker services...${COLOR_RESET}"
+	docker-compose down
+
+#################################################################################
+#                              Test Commands                                     #
+#################################################################################
+
+# Run all tests
+test: test-unit test-integration lint
+
+# Run unit tests
 test-unit: check-env
 	@echo "${COLOR_BLUE}Running unit tests...${COLOR_RESET}"
 	$(PYTHON) -m pytest tests/unit -v --cov=server --cov-report=term-missing
 
-# Run integration tests only
+# Run integration tests
 test-integration: check-env
 	@echo "${COLOR_BLUE}Running integration tests...${COLOR_RESET}"
 	$(PYTHON) -m pytest tests/integration -v
 
-# Run linters
-lint: lint-python lint-js
-
 # Run Python linters
-lint-python: check-env
-	@echo "${COLOR_BLUE}Running Python linters...${COLOR_RESET}"
+lint: check-env
+	@echo "${COLOR_BLUE}Running linters...${COLOR_RESET}"
 	flake8 server/
 	black --check server/
 	isort --check-only server/
-
-# Run JavaScript linters
-lint-js: check-env
-	@echo "${COLOR_BLUE}Running JavaScript linters...${COLOR_RESET}"
 	cd client && $(NPM) run lint
 
-################################################################################
-#                           Deployment Commands                                 #
-################################################################################
+#################################################################################
+#                           Deployment Commands                                  #
+#################################################################################
 
 # Deploy the application
-deploy: check-env build
+deploy: check-env
 	@echo "${COLOR_BLUE}Deploying application...${COLOR_RESET}"
 	@./scripts/deploy.sh
 
-# Build the application
+# Build for production
 build: check-env
-	@echo "${COLOR_BLUE}Building application...${COLOR_RESET}"
-	# Build Python package
+	@echo "${COLOR_BLUE}Building for production...${COLOR_RESET}"
 	$(PYTHON) setup.py build
-	# Build React client
 	cd client && $(NPM) run build
 
-################################################################################
-#                           Maintenance Commands                                #
-################################################################################
+#################################################################################
+#                           Cleanup Commands                                     #
+#################################################################################
 
-# Clean up generated files and caches
+# Clean up generated files
 clean:
 	@echo "${COLOR_BLUE}Cleaning up...${COLOR_RESET}"
 	# Clean Python cache
@@ -120,34 +141,14 @@ clean:
 	[ -d client/build ] && rm -rf client/build || true
 	[ -d dist ] && rm -rf dist || true
 	[ -d build ] && rm -rf build || true
-	# Clean virtual environment
-	[ -d venv ] && rm -rf venv || true
-	@echo "${COLOR_GREEN}Cleanup complete!${COLOR_RESET}"
+	# Clean Docker
+	docker-compose down --rmi all -v --remove-orphans || true
 
-# Deep clean - remove all generated files and dependencies
-clean-all: clean
-	@echo "${COLOR_BLUE}Performing deep clean...${COLOR_RESET}"
-	# Remove all downloaded models
-	rm -rf models/*
-	# Remove logs
-	rm -rf logs/*
-	# Keep .gitkeep files
-	touch models/.gitkeep logs/.gitkeep
+#################################################################################
+#                              Helper Commands                                   #
+#################################################################################
 
-# Format code
-format: check-env
-	@echo "${COLOR_BLUE}Formatting code...${COLOR_RESET}"
-	# Format Python code
-	black server/
-	isort server/
-	# Format JavaScript code
-	cd client && $(NPM) run format
-
-################################################################################
-#                              Helper Commands                                  #
-################################################################################
-
-# Check required environment variables
+# Check environment
 check-env:
 	@if [ ! -f .env ]; then
 		echo "${COLOR_YELLOW}Warning: .env file not found. Copying from .env.example...${COLOR_RESET}"
@@ -163,25 +164,24 @@ help:
 	@echo "  make download-models - Download pre-trained models"
 	@echo ""
 	@echo "Development Commands:"
-	@echo "  make dev            - Start development servers"
-	@echo "  make test           - Run all tests"
-	@echo "  make test-unit      - Run unit tests only"
-	@echo "  make test-integration - Run integration tests only"
-	@echo "  make lint           - Run all linters"
-	@echo "  make format         - Format code"
+	@echo "  make dev            - Start complete development environment"
+	@echo "  make client         - Start frontend development only"
+	@echo "  make server         - Start backend services only"
+	@echo ""
+	@echo "Docker Commands:"
+	@echo "  make docker-build   - Build all Docker images"
+	@echo "  make docker-up      - Start Docker services"
+	@echo "  make docker-down    - Stop Docker services"
+	@echo ""
+	@echo "Test Commands:"
+	@echo "  make test           - Run all tests and linters"
+	@echo "  make test-unit      - Run unit tests"
+	@echo "  make test-integration - Run integration tests"
+	@echo "  make lint           - Run linters"
 	@echo ""
 	@echo "Deployment Commands:"
 	@echo "  make deploy         - Deploy the application"
-	@echo "  make build          - Build the application"
+	@echo "  make build          - Build for production"
 	@echo ""
-	@echo "Maintenance Commands:"
+	@echo "Cleanup Commands:"
 	@echo "  make clean          - Clean up generated files"
-	@echo "  make clean-all      - Remove all generated files and dependencies"
-	@echo ""
-	@echo "Helper Commands:"
-	@echo "  make help           - Display this help message"
-	@echo ""
-	@echo "Example usage:"
-	@echo "  make setup download-models  # Complete initial setup"
-	@echo "  make dev                    # Start development environment"
-	@echo "  make test lint              # Run tests and linters"
