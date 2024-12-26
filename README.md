@@ -1,219 +1,294 @@
-# OpenPhoenix-Live: Real-Time Conversational Video Interface
+# OpenPhoenix-Live: Real-Time Interactive Video Chat with AI
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![Node Version](https://img.shields.io/badge/node-16%2B-green)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/docker-required-blue)](https://www.docker.com/)
 
 ## Overview
 
-OpenPhoenix-Live is an open-source implementation of a real-time talking-head generation system using 3D Gaussian Splatting. It enables the creation of interactive AI agents that can see, hear, and speak, simulating natural video conversations.
+OpenPhoenix-Live is an open-source system for creating interactive AI agents with real-time video conversation capabilities. Using 3D Gaussian Splatting and advanced neural networks, it enables natural face-to-face interactions with AI.
 
 ### Key Features
 
-- **Real-time Video Processing**: WebRTC-based video streaming and processing
+- **Real-time Video Processing**: WebRTC-based video streaming
 - **Speech Recognition**: Live speech-to-text conversion
-- **Natural Language Understanding**: LLM-powered conversation management
-- **Speech Synthesis**: High-quality text-to-speech generation
-- **Facial Animation**: Real-time lip sync and expression control
-- **3D Rendering**: Advanced 3D Gaussian Splatting rendering
+- **Natural Language Understanding**: LLM-powered conversation
+- **Speech Synthesis**: High-quality text-to-speech
+- **Facial Animation**: Real-time lip sync and expressions
+- **3D Rendering**: Gaussian Splatting video generation
 
-## System Architecture
+## Project Structure
 
-The system consists of seven major components:
+```plaintext
+OpenPhoenix-Live/
+├── README.md
+├── docker/                  # Docker configuration
+│   ├── Dockerfile.stt      # Speech-to-Text service
+│   ├── Dockerfile.llm      # Language Model service
+│   ├── Dockerfile.tts      # Text-to-Speech service
+│   ├── Dockerfile.render   # 3D Rendering service
+│   └── docker-compose.yml  # Service orchestration
+├── server/                 # Backend services
+│   ├── main_server.py      # Main orchestration
+│   ├── stt_service.py      # Speech recognition
+│   ├── llm_service.py      # Language model
+│   ├── tts_service.py      # Speech synthesis
+│   ├── rendering_service.py # 3D rendering
+│   └── animation/          # Animation code
+├── client/                 # Frontend
+│   ├── public/             # Static assets
+│   └── src/                # React code
+└── models/                 # Pre-trained models
+    ├── 3d_gs/              # Gaussian Splatting
+    └── tts/                # TTS checkpoints
+```
 
-1. **User Input Processing**
-   - WebRTC video/audio capture
+## Architecture
+
+### Microservices Overview
+
+The system uses a microservices architecture with Docker containers:
+
+1. **Speech-to-Text Service (Port 5000)**
    - Real-time speech recognition
-   - Input validation and preprocessing
+   - Audio stream processing
+   - Uses Vosk for offline recognition
+   - Configurable language models
 
-2. **Conversation Management**
-   - LLM-based dialogue system
-   - Context management
+2. **Language Model Service (Port 5001)**
+   - Conversation management
+   - Context handling
    - Response generation
+   - Model API integration
 
-3. **Speech Synthesis**
-   - Text-to-speech conversion
+3. **Text-to-Speech Service (Port 5002)**
+   - Speech synthesis
    - Voice customization
-   - Emotion-aware speech generation
+   - Audio streaming
+   - Expression control
 
-4. **Facial Animation**
-   - Audio-driven lip sync
-   - Expression synthesis
-   - Blendshape control
+4. **3D Rendering Service (Port 5003)**
+   - Gaussian Splatting rendering
+   - Real-time animation
+   - GPU acceleration
+   - Face model management
 
-5. **3D Rendering**
-   - 3D Gaussian Splatting
-   - Real-time view synthesis
-   - Lighting and shading
+### Docker Configuration
 
-6. **Web Interface**
-   - React-based frontend
-   - Real-time video display
-   - Chat interface
+#### Service Containers
 
-7. **System Orchestration**
-   - Microservices coordination
-   - WebSocket communication
-   - Resource management
+1. **STT Container (Dockerfile.stt)**
+   ```dockerfile
+   # Base: Python 3.8-slim
+   # Features:
+   - Audio processing libs
+   - FFmpeg integration
+   - Vosk model support
+   - Real-time streaming
+   ```
+
+2. **LLM Container (Dockerfile.llm)**
+   ```dockerfile
+   # Base: Python 3.8-slim
+   # Features:
+   - Lightweight deployment
+   - API integrations
+   - Memory optimization
+   - State management
+   ```
+
+3. **TTS Container (Dockerfile.tts)**
+   ```dockerfile
+   # Base: Python 3.8-slim
+   # Features:
+   - Audio synthesis
+   - Voice model handling
+   - Stream processing
+   - Expression markers
+   ```
+
+4. **Render Container (Dockerfile.render)**
+   ```dockerfile
+   # Base: nvidia/cuda:11.8.0
+   # Features:
+   - CUDA support
+   - 3D graphics libs
+   - GPU optimization
+   - Real-time processing
+   ```
+
+#### Docker Compose Configuration
+
+```yaml
+# Key Features:
+- Service orchestration
+- GPU passthrough
+- Volume management
+- Network setup
+- Resource limits
+- Environment configs
+```
 
 ## Prerequisites
 
 ### Hardware Requirements
 
-- CUDA-capable GPU (minimum 6GB VRAM recommended)
-- CPU with 4+ cores
-- 16GB+ RAM
-- Webcam and microphone for video input
+- CUDA-capable GPU (6GB+ VRAM)
+- CPU: 4+ cores
+- RAM: 16GB+
+- Storage: 20GB+
+- Webcam & Microphone
 
 ### Software Requirements
 
-- Python 3.8 or higher
-- Node.js 16 or higher
+- Docker & Docker Compose
+- NVIDIA Container Toolkit
 - CUDA Toolkit 11.8
-- Docker and Docker Compose
-- Git LFS for model management
+- Git LFS
 
 ## Installation
 
-### 1. Clone the Repository
+### Quick Start (Docker)
 
+1. Clone repository:
 ```bash
 git clone https://github.com/bytjn1416124/open-phoenix-live.git
 cd open-phoenix-live
 ```
 
-### 2. Environment Setup
-
+2. Configure environment:
 ```bash
-# Create and activate virtual environment
-make setup
+cp .env.example .env
+# Edit .env with your settings
+```
 
-# Download pre-trained models
+3. Start services:
+```bash
+docker-compose up -d
+```
+
+### Manual Setup
+
+1. Environment setup:
+```bash
+make setup
 make download-models
 ```
 
-### 3. Configuration
-
-Copy the example environment file and modify as needed:
+2. Start development:
 ```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-Key configuration options:
-- `CUDA_VISIBLE_DEVICES`: GPU device selection
-- `SERVER_PORT`: Main server port
-- `OPENAI_API_KEY`: If using OpenAI's API
-
-## Usage
-
-### Development Mode
-
-```bash
-# Start all services in development mode
 make dev
-```
-
-This will start:
-- Backend server on port 8000
-- Frontend development server on port 3000
-- Individual microservices on their respective ports
-
-### Production Deployment
-
-```bash
-# Build and deploy using Docker
-make deploy
 ```
 
 ## Development
 
-### Project Structure
+### Docker Commands
 
-```
-open-phoenix-live/
-├── server/                     # Backend implementation
-│   ├── main_server.py         # Main server orchestration
-│   ├── stt_service.py         # Speech-to-text service
-│   ├── llm_service.py         # Language model service
-│   ├── tts_service.py         # Text-to-speech service
-│   ├── rendering_service.py   # 3D rendering service
-│   └── animation/             # Animation related code
-├── client/                    # Frontend implementation
-│   ├── src/                   # React source code
-│   └── public/                # Static assets
-└── models/                    # Pre-trained models
-    ├── stt/                   # Speech recognition models
-    ├── tts/                   # Speech synthesis models
-    └── 3d_gs/                 # 3D Gaussian Splatting models
-```
-
-### Available Commands
-
+1. Build services:
 ```bash
-# Development
-make dev              # Start development servers
-make test             # Run all tests
-make lint             # Run code quality checks
-make format           # Format code
+# Build all
+docker-compose build
 
-# Maintenance
-make clean            # Clean up generated files
-make clean-all        # Deep clean including dependencies
-
-# Deployment
-make deploy           # Deploy application
-make build            # Build for production
+# Build specific service
+docker-compose build stt
+docker-compose build llm
+docker-compose build tts
+docker-compose build render
 ```
 
-## Testing
-
+2. Service management:
 ```bash
-# Run all tests
+# Start specific services
+docker-compose up stt llm
+
+# View logs
+docker-compose logs -f [service_name]
+
+# Scale services
+docker-compose up -d --scale stt=2
+```
+
+3. Cleanup:
+```bash
+# Stop services
+docker-compose down
+
+# Remove volumes
+docker-compose down -v
+
+# Full cleanup
+docker-compose down -v --rmi all
+```
+
+### Development Workflow
+
+1. Service Development:
+```bash
+# Run single service
+docker-compose up [service_name]
+
+# Rebuild after changes
+docker-compose up --build [service_name]
+```
+
+2. Testing:
+```bash
+# Run tests
 make test
 
-# Run specific test suites
-make test-unit
-make test-integration
+# Test specific service
+docker-compose run stt pytest
+```
+
+3. Monitoring:
+```bash
+# CPU/Memory usage
+docker stats
+
+# GPU stats
+nvidia-smi
+```
+
+## Production Deployment
+
+### Using Docker Compose
+
+1. Build production images:
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
+```
+
+2. Start production stack:
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+### Manual Deployment
+
+1. Build services:
+```bash
+make build
+```
+
+2. Deploy:
+```bash
+make deploy
 ```
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -am 'Add my feature'`
-4. Push to the branch: `git push origin feature/my-feature`
-5. Submit a pull request
-
-### Code Style
-
-- Python: Follow PEP 8 guidelines, enforced by black and flake8
-- JavaScript: ESLint with Prettier for formatting
-- Commit messages: Follow conventional commits format
-
-## Troubleshooting
-
-### Common Issues
-
-1. **GPU Memory Issues**
-   - Reduce batch size in `config.yml`
-   - Monitor GPU memory usage with `nvidia-smi`
-
-2. **WebRTC Connection Problems**
-   - Check STUN/TURN server configuration
-   - Verify browser permissions
-
-3. **Model Loading Errors**
-   - Ensure models are downloaded correctly
-   - Check CUDA compatibility
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE)
 
 ## Citation
-
-If you use this project in your research, please cite:
 
 ```bibtex
 @misc{openphoenix2024,
@@ -224,17 +299,3 @@ If you use this project in your research, please cite:
   url = {https://github.com/bytjn1416124/open-phoenix-live}
 }
 ```
-
-## Disclaimer
-
-This is a research and experimental project. Please note:
-- Real-time performance depends heavily on hardware capabilities
-- The system requires significant computational resources
-- Always respect privacy and ethical guidelines when handling facial data
-
-## Contact
-
-For questions and support:
-- Create an issue in the GitHub repository
-- Join our [Discord community](#)
-- Email: [contact@example.com](#)
