@@ -1,6 +1,13 @@
 # OpenPhoenix-Live: Real-Time Interactive Video Chat with AI
 
-[Previous badges and introduction remain the same...]
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
+[![Node Version](https://img.shields.io/badge/node-16%2B-green)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/docker-required-blue)](https://www.docker.com/)
+
+## Overview
+
+OpenPhoenix-Live is an advanced open-source system for creating interactive AI agents with real-time video conversation capabilities. Using 3D Gaussian Splatting and neural networks, it enables natural face-to-face interactions with AI.
 
 ## Project Structure
 
@@ -25,102 +32,60 @@ OpenPhoenix-Live/
 ├── client/                 # Frontend
 │   ├── public/             # Static assets
 │   │   └── index.html      # Main HTML file
-│   ├── cvi_app.js          # Main JS for WebRTC, video display
+│   ├── cvi_app.js          # Main JS for WebRTC, displays user + agent video
 │   └── src/                # React source code
-├── models/                 # Pre-trained models
-│   ├── 3d_gs/             # Pretrained Gaussians
-│   │   ├── pretrained_model.pth  # Main model weights
-│   │   └── config.yaml     # Model configuration
-│   └── tts/               # TTS checkpoints
-│       ├── coqui_model.pth # TTS model weights
-│       └── config.json     # Model configuration
-└── scripts/               # Utility scripts
+└── models/                 # Pre-trained models
+    ├── 3d_gs/              # Pretrained Gaussians
+    │   ├── pretrained_model.pth  # Main model weights
+    │   └── config.yaml     # Model configuration
+    └── tts/                # TTS checkpoints
+        ├── coqui_model.pth # TTS model weights
+        └── config.json     # Model configuration
 ```
 
-## Models
+## Component Details
 
-### 3D Gaussian Splatting Models
+### Pre-trained Models
 
-Located in `models/3d_gs/`, these models handle 3D face representation and rendering.
+#### 1. 3D Gaussian Splatting Models (models/3d_gs/)
+- **Purpose**: 3D face representation and real-time rendering
+- **Files**:
+  - `pretrained_model.pth`: Neural network weights for 3D Gaussian Splatting
+  - `config.yaml`: Model parameters and rendering configuration
 
-#### Required Files
-- `pretrained_model.pth`: Main model weights
-- `config.yaml`: Model configuration and parameters
+#### 2. Text-to-Speech Models (models/tts/)
+- **Purpose**: Voice synthesis and audio generation
+- **Files**:
+  - `coqui_model.pth`: TTS model weights for voice generation
+  - `config.json`: Voice configuration and synthesis parameters
 
-#### Features
-- Real-time 3D face rendering
-- Expression deformation
-- View synthesis
-- Lighting adaptation
+### Backend Services
 
-#### Model Details
-```yaml
-# config.yaml structure
-model:
-  type: gaussian_splatting
-  features: 256
-  num_gaussians: 100000
-  viewport_size: [640, 480]
-  rendering:
-    fps: 30
-    quality: high
-```
+#### 1. Speech-to-Text Service (stt_service.py)
+- Real-time speech recognition
+- Audio stream processing
+- Multiple language support
 
-### Text-to-Speech Models
+#### 2. Language Model Service (llm_service.py)
+- Natural language understanding
+- Conversation management
+- Response generation
 
-Located in `models/tts/`, these models handle speech synthesis.
+#### 3. Text-to-Speech Service (tts_service.py)
+- Speech synthesis
+- Voice customization
+- Real-time audio streaming
 
-#### Required Files
-- `coqui_model.pth`: TTS model weights
-- `config.json`: Voice and synthesis parameters
+#### 4. Rendering Service (rendering_service.py)
+- 3D Gaussian Splatting
+- Real-time animation
+- Frame generation
 
-#### Features
-- High-quality speech synthesis
-- Multiple voice support
-- Emotion control
-- Real-time generation
+### Frontend Components
 
-#### Model Details
-```json
-// config.json structure
-{
-  "model": {
-    "type": "coqui_tts",
-    "sample_rate": 22050,
-    "voice_ids": ["voice_1", "voice_2"],
-    "features": {
-      "emotions": true,
-      "speed_control": true
-    }
-  }
-}
-```
+#### 1. Video Interface (cvi_app.js)
+- WebRTC implementation
+- User/agent video display
+- Real-time streaming
 
-### Model Management
-
-#### Download Models
-```bash
-# Download all models
-make download-models
-
-# Download specific models
-make download-gaussian-models  # 3D Gaussian models only
-make download-tts-models      # TTS models only
-```
-
-#### Verify Models
-```bash
-# Verify all model files
-make verify-models
-```
-
-#### Model Updates
-```bash
-# Update to latest models
-make update-models
-
-# Backup existing models
-make backup-models
-```
-
-[Rest of the README remains the same...]
+[Rest of README content...]
