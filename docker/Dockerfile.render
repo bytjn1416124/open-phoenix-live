@@ -1,0 +1,34 @@
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    git \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Install PyTorch with CUDA support
+RUN pip3 install torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+
+# Copy service code and models
+COPY server/rendering_service.py /app/server/
+COPY server/animation/ /app/server/animation/
+COPY models/3d_gs/ /app/models/3d_gs/
+
+# Service port
+EXPOSE 5003
+
+# Environment variables
+ENV CUDA_VISIBLE_DEVICES=0
+
+# Run service
+CMD ["python3", "-m", "server.rendering_service"]

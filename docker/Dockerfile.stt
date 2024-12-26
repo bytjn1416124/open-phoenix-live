@@ -1,0 +1,24 @@
+FROM python:3.8-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libsndfile1 \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy service code and models
+COPY server/stt_service.py /app/server/
+COPY models/stt/ /app/models/stt/
+
+# Service port
+EXPOSE 5000
+
+# Run service
+CMD ["python", "-m", "server.stt_service"]
